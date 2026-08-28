@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>TummyLog — IBS food lookup</title>
+<meta name="description" content="Look up whether a food or drink is safe for IBS, and keep your own notes on how it affects you.">
+<meta name="theme-color" content="#0F6E56">
+
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="app-header">
+  <div class="brand">
+    <img src="icons/icon-192.png" alt="" class="brand-mark" width="36" height="36">
+    <span class="brand-name">TummyLog</span>
+  </div>
+  <button id="add-food-btn" class="btn btn-primary" type="button">
+    <span aria-hidden="true">+</span> Add food
+  </button>
+</header>
+
+<main class="app-main">
+
+  <section class="search-section">
+    <h1 class="search-title">Is it safe for my gut?</h1>
+    <p class="search-sub">Search a food or drink to check its IBS status and jot down your own notes.</p>
+
+    <div class="search-bar">
+      <svg class="search-icon" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+        <circle cx="8.5" cy="8.5" r="6" stroke="currentColor" stroke-width="1.8"/>
+        <line x1="13" y1="13" x2="18" y2="18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+      <input
+        id="search-input"
+        type="text"
+        inputmode="search"
+        autocomplete="off"
+        placeholder="Search a food or drink, e.g. onion, oats, wine…"
+        aria-label="Search a food or drink"
+      >
+      <button id="clear-search" class="clear-btn" type="button" aria-label="Clear search" hidden>&times;</button>
+    </div>
+
+    <div class="filter-row" id="filter-row" role="group" aria-label="Filter by status">
+      <button class="chip chip-all is-active" data-filter="all" type="button">All</button>
+      <button class="chip chip-status-ok" data-filter="ok" type="button">Fine</button>
+      <button class="chip chip-status-moderate" data-filter="moderate" type="button">Moderation</button>
+      <button class="chip chip-status-avoid" data-filter="avoid" type="button">Avoid</button>
+      <button class="chip chip-mine" data-filter="mine" type="button">My foods</button>
+    </div>
+  </section>
+
+  <section class="results-section" aria-live="polite">
+    <div id="results-count" class="results-count"></div>
+    <ul id="results-list" class="results-list"></ul>
+    <div id="empty-state" class="empty-state" hidden>
+      <svg width="72" height="72" viewBox="0 0 72 72" fill="none" aria-hidden="true">
+        <circle cx="34" cy="32" r="17" fill="#E1F5EE"/>
+        <circle cx="38" cy="41" r="12" fill="none" stroke="#5DCAA5" stroke-width="4"/>
+        <line x1="47" y1="50" x2="56" y2="59" stroke="#5DCAA5" stroke-width="4" stroke-linecap="round"/>
+      </svg>
+      <p class="empty-title">No matches yet</p>
+      <p class="empty-sub">Try a different search, or add it as a new food so you can track it yourself.</p>
+      <button id="empty-add-btn" class="btn btn-secondary" type="button">Add this food</button>
+    </div>
+  </section>
+
+  <p class="disclaimer">
+    Statuses follow a general low-FODMAP framework and are a starting point, not medical advice.
+    Triggers are individual — use the notes field to track your own experience, and check with a
+    dietitian or doctor for personalised guidance.
+  </p>
+
+</main>
+
+<div id="modal-backdrop" class="modal-backdrop" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-header">
+      <h2 id="modal-title">Food details</h2>
+      <button id="modal-close" class="icon-btn" type="button" aria-label="Close">&times;</button>
+    </div>
+
+    <div class="modal-body">
+      <label class="field-label" for="food-name-input">Name</label>
+      <input id="food-name-input" type="text" class="field-input" placeholder="e.g. Kimchi">
+
+      <label class="field-label" for="food-category-input">Category</label>
+      <select id="food-category-input" class="field-input">
+        <option>Fruits</option>
+        <option>Vegetables</option>
+        <option>Grains & starches</option>
+        <option>Dairy & alternatives</option>
+        <option>Protein</option>
+        <option>Nuts & seeds</option>
+        <option>Sweeteners & snacks</option>
+        <option>Drinks</option>
+        <option>Other</option>
+      </select>
+
+      <span class="field-label">Status</span>
+      <div class="status-radio-row" id="status-radio-row">
+        <label class="status-radio status-radio-ok">
+          <input type="radio" name="status" value="ok"> Fine
+        </label>
+        <label class="status-radio status-radio-moderate">
+          <input type="radio" name="status" value="moderate"> Moderation
+        </label>
+        <label class="status-radio status-radio-avoid">
+          <input type="radio" name="status" value="avoid" checked> Avoid
+        </label>
+      </div>
+
+      <label class="field-label" for="food-note-input">My notes</label>
+      <textarea id="food-note-input" class="field-input field-textarea" placeholder="How does this affect you? Any triggers, timing, safe portion size…"></textarea>
+    </div>
+
+    <div class="modal-footer">
+      <button id="delete-food-btn" class="btn btn-danger-text" type="button" hidden>Remove</button>
+      <div class="modal-footer-right">
+        <button id="modal-cancel" class="btn btn-secondary" type="button">Cancel</button>
+        <button id="modal-save" class="btn btn-primary" type="button">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+<script src="data/foods.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
